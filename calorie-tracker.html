@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calorie Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F4EF;
+    --surface: #FFFFFF;
+    --accent: #D4633A;
+    --accent-light: #FAE8DF;
+    --text: #1C1915;
+    --muted: #8C8680;
+    --border: #E5E0D8;
+    --danger: #C0392B;
+    --green: #2E7D5B;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .wrapper {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2rem;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .date-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--text);
+  }
+
+  .ring-card {
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.5s 0.08s ease both;
+  }
+
+  .ring-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 84px;
+    height: 84px;
+  }
+
+  .ring-wrap svg {
+    transform: rotate(-90deg);
+    width: 84px;
+    height: 84px;
+  }
+
+  .ring-bg { fill: none; stroke: var(--accent-light); stroke-width: 7; }
+  .ring-fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-dasharray: 220;
+    stroke-dashoffset: 220;
+    transition: stroke-dashoffset 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ring-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .ring-unit {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .summary-text h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .summary-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .goal-bar-wrap {
+    margin-top: 10px;
+  }
+
+  .goal-bar-track {
+    background: var(--border);
+    border-radius: 99px;
+    height: 5px;
+    overflow: hidden;
+  }
+
+  .goal-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  .goal-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .form-card {
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.5s 0.16s ease both;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+  }
+
+  .field label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .field input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: #C0B8B0; }
+
+  .cal-preview {
+    margin-top: 10px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .cal-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    animation: fadeUp 0.2s ease both;
+  }
+
+  .cal-pill-label { color: #b04e28; font-size: 11px; }
+
+  .cal-error { color: #b04e28; font-size: 13px; }
+
+  .add-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 18px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+    align-self: flex-end;
+  }
+
+  .add-btn:hover { background: #bf5530; }
+  .add-btn:active { transform: scale(0.97); }
+  .add-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+  .field-food { flex: 1; min-width: 0; }
+  .field-qty  { width: 60px; flex-shrink: 0; }
+  .field-unit { width: 90px; flex-shrink: 0; }
+
+  .dropdown-wrap { position: relative; }
+
+  .dropdown-list {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    list-style: none;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  .dropdown-list.open { display: block; }
+
+  .dropdown-list li {
+    padding: 9px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .dropdown-list li:last-child { border-bottom: none; }
+  .dropdown-list li:hover, .dropdown-list li.active { background: var(--accent-light); }
+
+  .dropdown-list .item-cal {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .dropdown-list .item-cat {
+    font-size: 11px;
+    color: var(--muted);
+    flex: 1;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .no-results {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .field select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 8px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238C8680' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 24px;
+  }
+  .field select:focus { border-color: var(--accent); }
+
+  .food-unit-tag {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 2px;
+  }
+
+  .list-header {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding: 0 2px;
+    animation: fadeUp 0.5s 0.22s ease both;
+  }
+
+  #food-list { list-style: none; }
+
+  .food-item {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    animation: slideIn 0.25s ease both;
+    gap: 10px;
+  }
+
+  .food-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  .food-name {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .food-cal {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-right: 6px;
+  }
+
+  .food-cal-unit {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .del-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .del-btn:hover { color: var(--danger); background: #fdecea; }
+
+  .empty {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--muted);
+    font-size: 14px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .empty-icon { font-size: 2rem; margin-bottom: 8px; }
+
+  .food-item.removing {
+    animation: slideOut 0.2s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slideOut {
+    to { opacity: 0; transform: translateX(12px); height: 0; padding: 0; margin: 0; border: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="date-label" id="date-label"></div>
+    <h1>Calorie<br>Tracker</h1>
+  </header>
+
+  <div class="ring-card">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 84 84">
+        <circle class="ring-bg" cx="42" cy="42" r="35"/>
+        <circle class="ring-fill" id="ring" cx="42" cy="42" r="35"/>
+      </svg>
+      <div class="ring-center">
+        <span class="ring-num" id="ring-num">0</span>
+        <span class="ring-unit">kcal</span>
+      </div>
+    </div>
+    <div class="summary-text">
+      <h2 id="total-display">0 <span style="font-size:1rem;color:var(--muted)">kcal</span></h2>
+      <div class="summary-sub" id="summary-sub">No entries yet today</div>
+      <div class="goal-bar-wrap">
+        <div class="goal-bar-track"><div class="goal-bar-fill" id="goal-bar"></div></div>
+        <div class="goal-labels"><span>0</span><span>Goal: 2,000 kcal</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-row">
+      <div class="field field-food">
+        <label for="food-search">Food</label>
+        <div class="dropdown-wrap" id="dropdown-wrap">
+          <input type="text" id="food-search" placeholder="Search food…" autocomplete="off">
+          <ul class="dropdown-list" id="dropdown-list"></ul>
+        </div>
+      </div>
+      <div class="field field-qty">
+        <label for="qty-input">Qty</label>
+        <input type="number" id="qty-input" placeholder="1" min="0.1" step="0.1" value="1">
+      </div>
+      <div class="field field-unit">
+        <label for="unit-input">Unit</label>
+        <select id="unit-input">
+          <option value="serving">serving</option>
+          <option value="cup">cup</option>
+          <option value="bowl">bowl</option>
+          <option value="plate">plate</option>
+          <option value="piece">piece</option>
+          <option value="slice">slice</option>
+          <option value="g">g</option>
+          <option value="ml">ml</option>
+          <option value="oz">oz</option>
+          <option value="tbsp">tbsp</option>
+          <option value="tsp">tsp</option>
+        </select>
+      </div>
+      <button class="add-btn" id="add-btn" disabled>Add</button>
+    </div>
+    <div class="cal-preview" id="cal-preview"></div>
+  </div>
+
+  <div class="list-header" id="list-header" style="display:none;">Today's log</div>
+  <ul id="food-list"></ul>
+  <div class="empty" id="empty-state">
+    <div class="empty-icon">🥗</div>
+    Start logging your meals above
+  </div>
+
+</div>
+
+<script>
+  const GOAL = 2000;
+  const CIRC = 2 * Math.PI * 35;
+
+  // ── Food database (kcal per 1 serving unless noted) ──
+  const FOODS = [
+    // Breakfast
+    { name:'White rice (cooked)',       cat:'Grains',     kcal:206 },
+    { name:'Brown rice (cooked)',        cat:'Grains',     kcal:216 },
+    { name:'Oatmeal (cooked)',           cat:'Grains',     kcal:158 },
+    { name:'White bread',               cat:'Grains',     kcal:79  },
+    { name:'Wholegrain bread',          cat:'Grains',     kcal:69  },
+    { name:'Croissant',                 cat:'Bakery',     kcal:231 },
+    { name:'Bagel',                     cat:'Bakery',     kcal:270 },
+    { name:'Pancake',                   cat:'Bakery',     kcal:175 },
+    { name:'Waffle',                    cat:'Bakery',     kcal:218 },
+    { name:'Granola',                   cat:'Grains',     kcal:471 },
+    { name:'Corn flakes',               cat:'Grains',     kcal:101 },
+    // Protein
+    { name:'Chicken breast (grilled)',  cat:'Protein',    kcal:165 },
+    { name:'Chicken thigh (grilled)',   cat:'Protein',    kcal:209 },
+    { name:'Chicken rice (plate)',      cat:'Asian',      kcal:607 },
+    { name:'Beef steak (grilled)',      cat:'Protein',    kcal:271 },
+    { name:'Minced beef',               cat:'Protein',    kcal:215 },
+    { name:'Pork chop (grilled)',       cat:'Protein',    kcal:187 },
+    { name:'Bacon (2 strips)',          cat:'Protein',    kcal:86  },
+    { name:'Salmon (grilled)',          cat:'Seafood',    kcal:208 },
+    { name:'Tuna (canned in water)',    cat:'Seafood',    kcal:109 },
+    { name:'Shrimp (cooked)',           cat:'Seafood',    kcal:84  },
+    { name:'Egg (boiled)',              cat:'Protein',    kcal:78  },
+    { name:'Egg (scrambled)',           cat:'Protein',    kcal:148 },
+    { name:'Egg (fried)',               cat:'Protein',    kcal:90  },
+    { name:'Tofu (firm)',               cat:'Protein',    kcal:144 },
+    { name:'Tempeh',                    cat:'Protein',    kcal:195 },
+    // Asian dishes
+    { name:'Nasi lemak',                cat:'Asian',      kcal:644 },
+    { name:'Char kway teow',            cat:'Asian',      kcal:744 },
+    { name:'Laksa',                     cat:'Asian',      kcal:589 },
+    { name:'Wonton noodle soup',        cat:'Asian',      kcal:390 },
+    { name:'Fried rice',                cat:'Asian',      kcal:520 },
+    { name:'Noodle soup',               cat:'Asian',      kcal:350 },
+    { name:'Roti prata (plain)',        cat:'Asian',      kcal:301 },
+    { name:'Mee goreng',                cat:'Asian',      kcal:660 },
+    { name:'Dim sum (3 pcs)',           cat:'Asian',      kcal:220 },
+    { name:'Spring roll',               cat:'Asian',      kcal:165 },
+    { name:'Sushi roll (6 pcs)',        cat:'Asian',      kcal:350 },
+    { name:'Ramen',                     cat:'Asian',      kcal:547 },
+    { name:'Pad thai',                  cat:'Asian',      kcal:500 },
+    { name:'Miso soup',                 cat:'Asian',      kcal:40  },
+    // Western
+    { name:'Burger (beef)',             cat:'Western',    kcal:354 },
+    { name:'Cheeseburger',              cat:'Western',    kcal:535 },
+    { name:'French fries (medium)',     cat:'Western',    kcal:365 },
+    { name:'Pizza (cheese, 1 slice)',   cat:'Western',    kcal:272 },
+    { name:'Spaghetti bolognese',       cat:'Western',    kcal:628 },
+    { name:'Mac & cheese',              cat:'Western',    kcal:350 },
+    { name:'Caesar salad',             cat:'Western',    kcal:481 },
+    { name:'Garden salad (no dressing)',cat:'Vegetables', kcal:20  },
+    { name:'Sandwich (ham & cheese)',   cat:'Western',    kcal:352 },
+    { name:'Hot dog',                   cat:'Western',    kcal:290 },
+    { name:'Chicken nuggets (6 pcs)',   cat:'Western',    kcal:285 },
+    // Vegetables
+    { name:'Broccoli (steamed)',        cat:'Vegetables', kcal:55  },
+    { name:'Spinach (cooked)',          cat:'Vegetables', kcal:41  },
+    { name:'Carrot (raw)',              cat:'Vegetables', kcal:52  },
+    { name:'Sweet potato (baked)',      cat:'Vegetables', kcal:103 },
+    { name:'Potato (baked)',            cat:'Vegetables', kcal:161 },
+    { name:'Corn (cooked)',             cat:'Vegetables', kcal:132 },
+    { name:'Edamame',                   cat:'Vegetables', kcal:122 },
+    { name:'Avocado (half)',            cat:'Vegetables', kcal:161 },
+    // Fruits
+    { name:'Apple',                     cat:'Fruit',      kcal:95  },
+    { name:'Banana',                    cat:'Fruit',      kcal:105 },
+    { name:'Orange',                    cat:'Fruit',      kcal:62  },
+    { name:'Grapes (cup)',              cat:'Fruit',      kcal:104 },
+    { name:'Watermelon (cup)',          cat:'Fruit',      kcal:46  },
+    { name:'Mango (cup)',               cat:'Fruit',      kcal:99  },
+    { name:'Strawberries (cup)',        cat:'Fruit',      kcal:49  },
+    { name:'Blueberries (cup)',         cat:'Fruit',      kcal:84  },
+    // Dairy
+    { name:'Milk (whole, 1 cup)',       cat:'Dairy',      kcal:149 },
+    { name:'Milk (skim, 1 cup)',        cat:'Dairy',      kcal:83  },
+    { name:'Greek yogurt (plain)',      cat:'Dairy',      kcal:100 },
+    { name:'Cheddar cheese (1 oz)',     cat:'Dairy',      kcal:114 },
+    { name:'Mozzarella (1 oz)',         cat:'Dairy',      kcal:85  },
+    { name:'Butter (1 tbsp)',           cat:'Dairy',      kcal:102 },
+    // Snacks
+    { name:'Potato chips (small bag)',  cat:'Snacks',     kcal:152 },
+    { name:'Popcorn (air-popped, 3c)', cat:'Snacks',     kcal:93  },
+    { name:'Almonds (1 oz)',            cat:'Snacks',     kcal:164 },
+    { name:'Peanuts (1 oz)',            cat:'Snacks',     kcal:166 },
+    { name:'Chocolate bar (1.5 oz)',    cat:'Snacks',     kcal:235 },
+    { name:'Cookie (chocolate chip)',   cat:'Snacks',     kcal:78  },
+    { name:'Ice cream (½ cup)',         cat:'Snacks',     kcal:207 },
+    { name:'Donut (glazed)',            cat:'Bakery',     kcal:269 },
+    // Drinks
+    { name:'Orange juice (1 cup)',      cat:'Drinks',     kcal:112 },
+    { name:'Apple juice (1 cup)',       cat:'Drinks',     kcal:114 },
+    { name:'Cola / soda (can)',         cat:'Drinks',     kcal:140 },
+    { name:'Coffee (black)',            cat:'Drinks',     kcal:2   },
+    { name:'Latte (whole milk)',        cat:'Drinks',     kcal:190 },
+    { name:'Green tea',                 cat:'Drinks',     kcal:2   },
+    { name:'Beer (regular, 12 oz)',     cat:'Drinks',     kcal:153 },
+    { name:'Wine (red, 5 oz)',          cat:'Drinks',     kcal:125 },
+    { name:'Smoothie (fruit, 1 cup)',   cat:'Drinks',     kcal:170 },
+    { name:'Protein shake',             cat:'Drinks',     kcal:160 },
+  ];
+
+  // ── Unit multipliers (relative to 1 serving) ──
+  const UNIT_MULT = {
+    serving: 1, plate: 1.5, bowl: 1.3, cup: 0.8,
+    piece: 0.7, slice: 0.5, g: 0.004, ml: 0.004,
+    oz: 0.12, tbsp: 0.06, tsp: 0.02
+  };
+
+  // ── DOM refs ──
+  const foodSearch  = document.getElementById('food-search');
+  const dropList    = document.getElementById('dropdown-list');
+  const qtyInput    = document.getElementById('qty-input');
+  const unitInput   = document.getElementById('unit-input');
+  const addBtn      = document.getElementById('add-btn');
+  const calPreview  = document.getElementById('cal-preview');
+  const foodList    = document.getElementById('food-list');
+  const totalDisplay= document.getElementById('total-display');
+  const summarySub  = document.getElementById('summary-sub');
+  const goalBar     = document.getElementById('goal-bar');
+  const ring        = document.getElementById('ring');
+  const ringNum     = document.getElementById('ring-num');
+  const emptyState  = document.getElementById('empty-state');
+  const listHeader  = document.getElementById('list-header');
+
+  // ── Storage ──
+  const todayKey = new Date().toDateString();
+  if (localStorage.getItem('cal_date') !== todayKey) {
+    localStorage.setItem('cal_date', todayKey);
+    localStorage.setItem('cal_entries', '[]');
+  }
+  let entries = JSON.parse(localStorage.getItem('cal_entries') || '[]');
+  function save() { localStorage.setItem('cal_entries', JSON.stringify(entries)); }
+
+  document.getElementById('date-label').textContent =
+    new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+
+  // ── Selected food state ──
+  let selectedFood = null;   // { name, kcal }
+  let activeIdx    = -1;
+
+  function calcCal() {
+    if (!selectedFood) return 0;
+    const qty  = parseFloat(qtyInput.value) || 1;
+    const mult = UNIT_MULT[unitInput.value] ?? 1;
+    return Math.round(selectedFood.kcal * qty * mult);
+  }
+
+  function updatePreview() {
+    calPreview.innerHTML = '';
+    addBtn.disabled = true;
+    if (!selectedFood) return;
+    const cal = calcCal();
+    const qty  = parseFloat(qtyInput.value) || 1;
+    calPreview.innerHTML = `
+      <div class="cal-pill">
+        <span>${cal.toLocaleString()} kcal</span>
+        <span class="cal-pill-label">${qty} ${unitInput.value}</span>
+      </div>`;
+    addBtn.disabled = false;
+  }
+
+  // ── Dropdown ──
+  function filterFoods(q) {
+    if (!q) return [];
+    const lq = q.toLowerCase();
+    return FOODS.filter(f => f.name.toLowerCase().includes(lq)).slice(0, 12);
+  }
+
+  function renderDropdown(results) {
+    dropList.innerHTML = '';
+    activeIdx = -1;
+    if (!results.length) {
+      dropList.innerHTML = '<li class="no-results">No foods found</li>';
+      dropList.classList.add('open');
+      return;
+    }
+    results.forEach((f, i) => {
+      const li = document.createElement('li');
+      li.dataset.idx = i;
+      li.innerHTML = `<span>${escHtml(f.name)}</span><span class="item-cat">${f.cat}</span><span class="item-cal">${f.kcal} kcal</span>`;
+      li.addEventListener('mousedown', e => { e.preventDefault(); selectFood(f); });
+      dropList.appendChild(li);
+    });
+    dropList.classList.add('open');
+  }
+
+  function closeDropdown() { dropList.classList.remove('open'); activeIdx = -1; }
+
+  function selectFood(f) {
+    selectedFood = f;
+    foodSearch.value = f.name;
+    closeDropdown();
+    updatePreview();
+    qtyInput.focus();
+  }
+
+  foodSearch.addEventListener('input', () => {
+    selectedFood = null;
+    addBtn.disabled = true;
+    calPreview.innerHTML = '';
+    const results = filterFoods(foodSearch.value.trim());
+    if (foodSearch.value.trim()) renderDropdown(results);
+    else closeDropdown();
+  });
+
+  foodSearch.addEventListener('focus', () => {
+    if (foodSearch.value.trim()) renderDropdown(filterFoods(foodSearch.value.trim()));
+  });
+
+  foodSearch.addEventListener('blur', () => setTimeout(closeDropdown, 150));
+
+  foodSearch.addEventListener('keydown', e => {
+    const items = dropList.querySelectorAll('li:not(.no-results)');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, items.length - 1);
+      items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      const f = filterFoods(foodSearch.value.trim())[activeIdx];
+      if (f) selectFood(f);
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    }
+  });
+
+  qtyInput.addEventListener('input', updatePreview);
+  unitInput.addEventListener('change', updatePreview);
+
+  // ── Add entry ──
+  function addEntry() {
+    if (!selectedFood || addBtn.disabled) return;
+    const cal  = calcCal();
+    const qty  = parseFloat(qtyInput.value) || 1;
+    const unit = unitInput.value;
+    entries.push({ name: selectedFood.name, qty, unit, cal });
+    save();
+    renderList();
+    foodSearch.value = '';
+    qtyInput.value   = '1';
+    unitInput.value  = 'serving';
+    selectedFood     = null;
+    calPreview.innerHTML = '';
+    addBtn.disabled  = true;
+    foodSearch.focus();
+  }
+
+  addBtn.addEventListener('click', addEntry);
+  qtyInput.addEventListener('keydown',  e => { if (e.key === 'Enter') addEntry(); });
+  unitInput.addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
+
+  // ── Delete ──
+  foodList.addEventListener('click', e => {
+    const btn = e.target.closest('.del-btn');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx, 10);
+    const li = foodList.querySelector(`li[data-idx="${idx}"]`);
+    if (li) {
+      li.classList.add('removing');
+      li.addEventListener('animationend', () => {
+        entries.splice(idx, 1);
+        save();
+        renderList();
+      }, { once: true });
+    }
+  });
+
+  // ── Render ──
+  function total() { return entries.reduce((s, e) => s + e.cal, 0); }
+
+  function updateSummary() {
+    const t = total();
+    totalDisplay.innerHTML = `${t.toLocaleString()} <span style="font-size:1rem;color:var(--muted)">kcal</span>`;
+    ringNum.textContent = t >= 1000 ? (t / 1000).toFixed(1) + 'k' : t;
+    const pct = Math.min(t / GOAL, 1);
+    ring.style.strokeDashoffset = CIRC * (1 - pct);
+    goalBar.style.width = (pct * 100) + '%';
+    const rem = GOAL - t;
+    summarySub.style.color = '';
+    if (t === 0) summarySub.textContent = 'No entries yet today';
+    else if (rem > 0) summarySub.textContent = `${rem.toLocaleString()} kcal remaining`;
+    else { summarySub.textContent = `${Math.abs(rem).toLocaleString()} kcal over goal`; summarySub.style.color = 'var(--danger)'; }
+    const over = rem <= 0 && t > 0;
+    goalBar.style.background = over ? 'var(--danger)' : 'var(--accent)';
+    ring.style.stroke        = over ? 'var(--danger)' : 'var(--accent)';
+    emptyState.style.display = entries.length ? 'none' : 'block';
+    listHeader.style.display = entries.length ? 'block' : 'none';
+  }
+
+  function renderList() {
+    foodList.innerHTML = '';
+    entries.slice().reverse().forEach((e, ri) => {
+      const i = entries.length - 1 - ri;
+      const li = document.createElement('li');
+      li.className = 'food-item';
+      li.dataset.idx = i;
+      const qtyLabel = e.qty && e.unit ? `<span class="food-unit-tag">${escHtml(e.qty + ' ' + e.unit)}</span>` : '';
+      li.innerHTML = `
+        <div class="food-dot"></div>
+        <div class="food-name">${escHtml(e.name)}${qtyLabel}</div>
+        <div class="food-cal">${e.cal.toLocaleString()} <span class="food-cal-unit">kcal</span></div>
+        <button class="del-btn" title="Delete" data-idx="${i}">✕</button>`;
+      foodList.appendChild(li);
+    });
+    updateSummary();
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  renderList();
+</script>
+</body>
+</html>
